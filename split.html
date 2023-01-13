@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Split</title>
+</head>
+<body>
+	<input type="file" id="file" />
+	<br />
+	<button id="split">Split</button>
+	<br />
+	<a href="merge.html>Merge</a>
+
+	<script>
+		const fileInput = document.getElementById("file");
+		const splitButton = document.getElementById("split");
+
+		splitButton.addEventListener("click", async () => {
+			/**
+			 * @type {File}
+			 */
+			const file = fileInput.files[0];
+			const buffer = await file.arrayBuffer();
+
+			const chunkSize = 1024 * 1024 * 8; // 8 MB
+			let beg = 0;
+			let end = chunkSize;
+			let partNumber = 0;
+			do {
+				const slice = buffer.slice(beg, end);
+				const blob = new Blob([slice], { type: "application/octet-stream" });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = `${file.name}.part${partNumber++}`;
+				link.click();
+				beg = end;
+				end += chunkSize;
+			} while (beg < buffer.byteLength);
+		});
+	</script>
+</body>
+</html>

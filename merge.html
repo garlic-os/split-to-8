@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Merge</title>
+</head>
+<body>
+	<input type="file" id="files" multiple />
+	<br />
+	<button id="merge">Merge</button>
+	<br />
+	<a href="split.html>Split</a>
+
+	<script>
+		const fileInput = document.getElementById("files");
+		const mergeButton = document.getElementById("merge");
+
+		// Concatenate the files and download it back as a single file.
+		mergeButton.addEventListener("click", async () => {
+			/**
+			 * @type {File[]}
+			 */
+			const files = Array.from(fileInput.files);
+			files.sort();
+
+			// Read each file as an ArrayBuffer
+			const fileBuffers = await Promise.all(
+				Array.from(files).map(file => file.arrayBuffer())
+			);
+
+			// Allocate a single array to hold all the data.
+			// length = sum of the lengths of the files.
+			const mergedData = new Uint8Array(
+				fileBuffers.reduce((acc, cur) => acc + cur.byteLength, 0)
+			);
+
+			// Copy the data from each file into the merged array.
+			let offset = 0;
+			for (const buffer of fileBuffers) {
+				mergedData.set(new Uint8Array(buffer), offset);
+				offset += buffer.byteLength;
+			}
+
+			// Create a blob from the merged array and download it.
+			const blob = new Blob([mergedData], { type: "application/octet-stream" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = files[0].name.split(".part")[0];
+			link.click();
+		});
+	</script>
+</body>
+</html>
